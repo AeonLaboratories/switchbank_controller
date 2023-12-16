@@ -56,11 +56,11 @@
 // AF == alternate function
 //
 // PADD		= 00010000		// 1 = IN; 0 = OUT (set unused pins to OUT)
-// PAOC		= 00001000		// 1 = open drain; 0 = push-pull (the default)
+// PAOC		= 00000000		// 1 = open drain; 0 = push-pull (the default)
 // PAAF		= 00110000		// alternate functions
 // PAOUT	= 00000000		// defaults
 #define PA_DD					0x10
-#define PA_OC					0x08
+#define PA_OC					0x00
 #define PA_AF					0x30
 #define PA_OUT					0x00
 

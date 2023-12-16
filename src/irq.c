@@ -17,7 +17,7 @@
 
 // Store big strings in ROM to conserve RData and EData space.
 rom char FIRMWARE[]	= R"Aeon Laboratories SB64 ";
-rom char VERSION[]	= R"V.20171210-0000";
+rom char VERSION[]	= R"V.20220823-0000";
 
 //#define SERNO					0
 
@@ -59,7 +59,6 @@ void init_irq()
 	Channel = CommandedChannel = 0;
 	Error = ERROR_NONE;	
 }
-
 
 
 ///////////////////////////////////////////////////////
@@ -117,58 +116,54 @@ void report_device()
 ///////////////////////////////////////////////////////
 void do_commands()
 {
-	char c;
+	char c, c2;
 	int n;
 
-	while (!RxbEmpty())				// process a command
+	while (!RxbEmpty())					// process a command
 	{
-		c = getc();		
 		mask_clr(Error, ERROR_COMMAND);
+		GetInput();
+		c = Command[0];					// a command
+		c2 = Command[1];				// possibly a sub-command
 		
 		// single-byte commands
-		if (c == '\0')				// null command
+		if (c == '\0')					// null command
 		{
-			// (treat as single-byte command that does nothing)
+			// do nothing
 		}
-		else if (c == 'z')			// program data
-		{
-			printromstr(FIRMWARE); printromstr(VERSION); endMessage();
-			endMessage();
-		}
-		else if (c == 'h')			// report header
-		{
-			report_header();
-		}
-		else if (c == 'r')			// report
+		else if (c == 'r')				// report
 		{
 			report_device();
 		}
-		else if (c == '0')			// set selected channel OFF
+		else if (c == '0')				// set selected channel OFF
 		{
 			setSwitchState(FALSE);
 		}
-		else if (c == '1')			// set selected channel ON
+		else if (c == '1')				// set selected channel ON
 		{
 			setSwitchState(TRUE);
 		}
+		else if (c == 'n')				// select channel
+		{				
+			n = TryInput(0, CHANNELS - 1, ERROR_CHANNEL, Channel, 0);
+			if (!(Error & ERROR_CHANNEL))
+				selectChannel(n);
+		}		
 		else if (c == 'x')				// reset all switches to OFF
 		{
 			reset_all();
 		}
-		else						// multi-byte command
+		else if (c == 'h')				// report header
 		{
-			getArgs();
-
-			if (c == 'n')					// select channel
-			{				
-				n = tryArg(0, CHANNELS - 1, ERROR_CHANNEL, Channel, FALSE);
-				if (!(Error & ERROR_CHANNEL))
-					selectChannel(n);
-			}
-			else					// unrecognized command
-			{
-				mask_set(Error, ERROR_COMMAND);
-			}
+			report_header();
+		}
+		else if (c == 'z')				// program data
+		{
+			printromstr(FIRMWARE); printromstr(VERSION); endMessage();
+		}
+		else					// unrecognized command
+		{
+			mask_set(Error, ERROR_COMMAND);
 		}
 	}
 }
